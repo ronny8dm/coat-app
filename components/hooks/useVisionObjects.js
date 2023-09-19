@@ -4,66 +4,80 @@ import { Image } from "react-native";
 import { RootStackParamList } from "../Tabs";
 
 export const useVisionObjects = (imageSource) => {
-    const route = useRoute();
-    const [imgWidth, setImgWidth] = useState(null);
-    const [imgHeight, setImgHeight] = useState(null);
+  const route = useRoute();
+  const [vectorizedMasks, setVectorizedMasks] = useState(null);
+  const [imgWidth, setImgWidth] = useState(null);
+  const [imgHeight, setImgHeight] = useState(null);
 
-    useEffect(() => {
-        const fetchData = async () => {
+  useEffect(() => {
+    const fetchData = async () => {
+      const formData = new FormData();
+      formData.append("vectorized", "true");
+      formData.append("room_image", {
+        uri: route.params.Image,
+        name: "room_image.jpg",
+        type: "image/jpeg",
+      });
 
-            // First, fetch the image data from the source URI.
-            try {
-                const imageResponse = await fetch(route.params.Image);
-                const imageBlob = await imageResponse.blob();
+      const headers = new Headers();
+      headers.append(
+        "Authorization",
+        "RFq13EwWO0Z9Oj96sOIU7XDrSF3uTQ14ZRDuuefMVulj6yE7XAEBMSZs3KmQ"
+      );
+      headers.append(
+        "X-RapidAPI-Key",
+        "b56a2f8652msh060ea2a1bb6dd8dp1ce8e1jsn40c0676faf52"
+      );
+      headers.append("X-RapidAPI-Host", "vision-api.p.rapidapi.com");
 
-                const formData = new FormData();
-                formData.append('vectorized', 'true');
-                formData.append('room_image', 'room_image.jpg');
+      const requestOptions = {
+        method: "POST",
+        headers: headers,
+        body: formData,
+        redirect: "follow",
+      };
 
-                const headers = new Headers();
-                headers.append("Authorization", 'RFq13EwWO0Z9Oj96sOIU7XDrSF3uTQ14ZRDuuefMVulj6yE7XAEBMSZs3KmQ');
-                headers.append("X-RapidAPI-Key", 'b56a2f8652msh060ea2a1bb6dd8dp1ce8e1jsn40c0676faf52');
-                headers.append("X-RapidAPI-Host", 'https://vision-api.p.rapidapi.com/interior');
+      try {
+        const response = await fetch(
+          "https://vision-api.p.rapidapi.com/interior",
+          requestOptions
+        );
+        const result = await response.json();
+        console.log("Parsed JSON result: ", result);
+        if (result.vectorized_masks) {
+          setVectorizedMasks(result.vectorized_masks);
+        } else {
+          console.log("No vectorized masks detected");
+        }
 
-                const requestOptions = {
-                    method: 'POST',
-                    headers: headers,
-                    body: formData,
-                    redirect: 'follow'
-                };
+        console.log(result);
+      } catch (error) {
+        console.error(error);
+      }
 
-                const response = await fetch('https://vision-api.p.rapidapi.com/interior', requestOptions);
-                
-                if (!response.ok) {
-                    const text = await response.text();
-                    console.error("Error response from server:", text);
-                    return;
-                }
-                
-                const result = await response.json();
-                console.log(result);
-            } catch (error) {
-                console.error(error);
-            }
-
-            Image.getSize(imageSource, (imgWidth, imgHeight) => {
-                setImgHeight(imgHeight);
-                setImgWidth(imgWidth);
-            }, (err) => {
-                console.error(err);
-            });
-        };
-
-        fetchData();
-    }, [route.params.Image]);
-
-    if (!route.params) {
-        return null;
-    }
-
-    return {
+      Image.getSize(
         imageSource,
-        imgWidth,
-        imgHeight
-    }
-}
+        (imgWidth, imgHeight) => {
+          setImgHeight(imgHeight);
+          setImgWidth(imgWidth);
+        },
+        (err) => {
+          console.error(err);
+        }
+      );
+    };
+
+    fetchData();
+  }, [route.params.Image]);
+
+  if (!route.params) {
+    return null;
+  }
+
+  return {
+    imageSource,
+    vectorizedMasks,
+    imgWidth,
+    imgHeight,
+  };
+};
