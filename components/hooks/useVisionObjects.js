@@ -5,6 +5,9 @@ import { RootStackParamList } from "../Tabs";
 
 export const useVisionObjects = (imageSource) => {
   const route = useRoute();
+  const authToken = process.env.EXPO_AUTH_TOKEN;
+  const apiKey = process.env.EXPO_API_KEY;
+  const apiUrl = process.env.EXPO_API_URL;
   const [vectorizedMasks, setVectorizedMasks] = useState(null);
   const [imgWidth, setImgWidth] = useState(null);
   const [imgHeight, setImgHeight] = useState(null);
@@ -22,11 +25,11 @@ export const useVisionObjects = (imageSource) => {
       const headers = new Headers();
       headers.append(
         "Authorization",
-        "RFq13EwWO0Z9Oj96sOIU7XDrSF3uTQ14ZRDuuefMVulj6yE7XAEBMSZs3KmQ"
+        authToken
       );
       headers.append(
         "X-RapidAPI-Key",
-        "b56a2f8652msh060ea2a1bb6dd8dp1ce8e1jsn40c0676faf52"
+        apiKey
       );
       headers.append("X-RapidAPI-Host", "vision-api.p.rapidapi.com");
 
@@ -39,7 +42,7 @@ export const useVisionObjects = (imageSource) => {
 
       try {
         const response = await fetch(
-          "https://vision-api.p.rapidapi.com/interior",
+          `${apiUrl}/interior`,
           requestOptions
         );
         const result = await response.json();
