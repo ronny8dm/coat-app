@@ -43,26 +43,20 @@ export const useVisionObjects = (imageSource) => {
           requestOptions
         );
         const result = await response.json();
-        console.log("Parsed JSON result: ", result);
-        if (result.vectorized_masks) {
-          setVectorizedMasks(result.vectorized_masks);
-        } else {
-          console.log("No vectorized masks detected");
-        }
-
-        console.log(result);
+        console.log("API Response:", result);
+        setVectorizedMasks(result);
       } catch (error) {
-        console.error(error);
+        console.error("API Request Error:", error);
       }
 
       Image.getSize(
         imageSource,
-        (imgWidth, imgHeight) => {
-          setImgHeight(imgHeight);
-          setImgWidth(imgWidth);
+        (width, height) => {
+          setImgHeight(height);
+          setImgWidth(width);
         },
         (err) => {
-          console.error(err);
+          console.error("Image getSize Error:", err);
         }
       );
     };
